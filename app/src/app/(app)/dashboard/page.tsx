@@ -13,19 +13,19 @@ const DEMO_SYSTEM_ID = 'b0000000-0000-0000-0000-000000000001'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+  // getSession() reads from cookie — no network round-trip to Supabase auth server (~200ms saved vs getUser)
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session?.user) redirect('/login')
 
-  // Buscar dados do perfil e tenant
+  const userId = session.user.id
+
+  // Get tenant_id first (single fast query), then fetch all dashboard data in parallel
   const { data: profile } = await supabase
-    .from('user_profiles')
-    .select('tenant_id')
-    .eq('id', user.id)
-    .single()
+    .from('user_profiles').select('tenant_id').eq('id', userId).single()
 
   const tenantId = profile?.tenant_id || DEMO_TENANT_ID
 
-  // Buscar dados em paralelo
+  // All 5 data queries run in parallel
   const [
     { data: sapUsers },
     { data: audits },

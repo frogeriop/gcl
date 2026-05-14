@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import {
   LayoutDashboard, Shield, FileText,
   BarChart3, Settings, LogOut, ChevronLeft, ChevronRight,
-  Bell, Search, Building2, AlertTriangle, Key, Users, ArrowLeftRight
+  Building2, Key, Users, ArrowLeftRight
 } from 'lucide-react'
 
 interface SidebarProps {
@@ -266,41 +266,7 @@ export function Topbar({ title, subtitle }: TopbarProps) {
         {subtitle && <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '1px' }}>{subtitle}</p>}
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        {/* Search */}
-        <div style={{ position: 'relative' }}>
-          <Search size={14} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#4b5563' }} />
-          <input
-            type="search"
-            placeholder="Buscar..."
-            className="input-field"
-            style={{ paddingLeft: '32px', width: '200px', height: '36px', fontSize: '0.8125rem', borderRadius: '8px' }}
-          />
-        </div>
-        {/* Notifications */}
-        <button style={{
-          width: '36px', height: '36px', borderRadius: '8px',
-          background: 'rgba(31, 41, 55, 0.6)', border: '1px solid rgba(55, 65, 81, 0.5)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', color: '#9ca3af', position: 'relative'
-        }}>
-          <Bell size={16} />
-          <span style={{
-            position: 'absolute', top: '6px', right: '6px',
-            width: '8px', height: '8px', borderRadius: '50%',
-            background: '#ef4444', border: '2px solid #0a0f1e'
-          }} />
-        </button>
-        {/* Alert indicator */}
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: '6px',
-          padding: '6px 12px', borderRadius: '8px',
-          background: 'rgba(245, 158, 11, 0.1)',
-          border: '1px solid rgba(245, 158, 11, 0.2)',
-          fontSize: '0.75rem', color: '#fbbf24', fontWeight: '600'
-        }}>
-          <AlertTriangle size={13} />
-          4 achados abertos
-        </div>
+
       </div>
     </header>
   )

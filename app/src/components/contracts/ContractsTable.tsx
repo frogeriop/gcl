@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { AgGridReact } from 'ag-grid-react'
 import {
   AllCommunityModule, ModuleRegistry,
@@ -259,6 +259,23 @@ function ContractDetailDialog({ contract, onClose }: { contract: Contract; onClo
   const [movements, setMovements] = useState<Movement[]>([])
   const [movLoading, setMovLoading] = useState(true)
   const [movError, setMovError] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState(0)
+
+  // Resumo consolidado por produto
+  const productSummary = useMemo(() => {
+    const map = new Map<string, { product_name: string; total_qty: number; total_value: number; currency: string }>()
+    for (const m of movements) {
+      const key = m.product_name ?? '(sem produto)'
+      const existing = map.get(key)
+      if (existing) {
+        existing.total_qty   += m.quantity  ?? 0
+        existing.total_value += m.net_amount ?? 0
+      } else {
+        map.set(key, { product_name: key, total_qty: m.quantity ?? 0, total_value: m.net_amount ?? 0, currency: m.currency ?? 'BRL' })
+      }
+    }
+    return Array.from(map.values()).sort((a, b) => b.total_value - a.total_value)
+  }, [movements])
 
   const fmtDate = (v: string | null) => {
     if (!v) return '—'
@@ -269,7 +286,7 @@ function ContractDetailDialog({ contract, onClose }: { contract: Contract; onClo
     v == null ? '—' : new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
   const fmtPct = (v: number | null) => v == null ? '—' : `${v.toFixed(1)}%`
 
-  useMemo(() => {
+  useEffect(() => {
     let cancelled = false
     setMovLoading(true); setMovError(null)
     fetch(`/api/contracts/${contract.contract_id}/movements`)
@@ -369,33 +386,97 @@ function ContractDetailDialog({ contract, onClose }: { contract: Contract; onClo
             </div>
           </div>
 
-          {/* Movements grid */}
+          {/* Movements section with tabs */}
           <div style={{ flex:1 }}>
-            <div style={{ fontSize:'0.6rem', color:'#6b7280', fontWeight:'700', textTransform:'uppercase' as const, letterSpacing:'0.06em', marginBottom:'8px', display:'flex', alignItems:'center', gap:'8px' }}>
-              Movimentações vinculadas
-              {!movLoading && <span style={{ padding:'1px 6px', borderRadius:'10px', background:'rgba(139,92,246,0.15)', color:'#a78bfa', fontSize:'0.6rem', fontWeight:'800' }}>{movements.length}</span>}
+
+            {/* Tab bar */}
+            <div style={{ display:'flex', alignItems:'center', gap:'0', marginBottom:'10px', borderBottom:'1px solid rgba(55,65,81,0.4)' }}>
+              {[
+                { id: 0, label: 'Movimentações', badge: !movLoading ? movements.length : null },
+                { id: 1, label: 'Por Produto',   badge: null },
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  style={{
+                    padding: '7px 14px', background: 'none', border: 'none', cursor: 'pointer',
+                    fontSize: '0.72rem', fontWeight: '700', letterSpacing: '0.03em',
+                    color: activeTab === tab.id ? '#a78bfa' : '#6b7280',
+                    borderBottom: activeTab === tab.id ? '2px solid #a78bfa' : '2px solid transparent',
+                    marginBottom: '-1px', transition: 'all 0.15s', display: 'flex', alignItems: 'center', gap: '6px',
+                  }}
+                >
+                  {tab.label}
+                  {tab.badge !== null && (
+                    <span style={{ padding:'0px 5px', borderRadius:'8px', fontSize:'0.6rem', fontWeight:'800',
+                      background: activeTab === tab.id ? 'rgba(139,92,246,0.2)' : 'rgba(75,85,99,0.3)',
+                      color: activeTab === tab.id ? '#a78bfa' : '#6b7280' }}>
+                      {tab.badge}
+                    </span>
+                  )}
+                </button>
+              ))}
             </div>
-            {movLoading ? (
-              <div style={{ display:'flex', alignItems:'center', gap:'8px', padding:'18px 0', color:'#6b7280', fontSize:'0.78rem' }}>
-                <Loader2 size={15} style={{ animation:'spin 1s linear infinite' }} /> Carregando movimentações...
-              </div>
-            ) : movError ? (
-              <div style={{ padding:'12px', borderRadius:'9px', background:'rgba(239,68,68,0.08)', border:'1px solid rgba(239,68,68,0.2)', color:'#f87171', fontSize:'0.78rem' }}>{movError}</div>
-            ) : movements.length === 0 ? (
-              <div style={{ padding:'18px', textAlign:'center', color:'#6b7280', fontSize:'0.78rem' }}>Nenhuma movimentação encontrada.</div>
-            ) : (
-              <div style={{ height:'270px' }}>
-                <AgGridReact<Movement>
-                  theme={movTheme}
-                  rowData={movements}
-                  columnDefs={movColDefs}
-                  defaultColDef={{ resizable: true, suppressMovable: false }}
-                  suppressCellFocus
-                  enableCellTextSelection
-                  pagination
-                  paginationPageSize={50}
-                />
-              </div>
+
+            {/* Tab 0: Movimentações */}
+            {activeTab === 0 && (
+              movLoading ? (
+                <div style={{ display:'flex', alignItems:'center', gap:'8px', padding:'18px 0', color:'#6b7280', fontSize:'0.78rem' }}>
+                  <Loader2 size={15} style={{ animation:'spin 1s linear infinite' }} /> Carregando movimentações...
+                </div>
+              ) : movError ? (
+                <div style={{ padding:'12px', borderRadius:'9px', background:'rgba(239,68,68,0.08)', border:'1px solid rgba(239,68,68,0.2)', color:'#f87171', fontSize:'0.78rem' }}>{movError}</div>
+              ) : movements.length === 0 ? (
+                <div style={{ padding:'18px', textAlign:'center', color:'#6b7280', fontSize:'0.78rem' }}>Nenhuma movimentação encontrada.</div>
+              ) : (
+                <div style={{ height:'270px' }}>
+                  <AgGridReact<Movement>
+                    theme={movTheme}
+                    rowData={movements}
+                    columnDefs={movColDefs}
+                    defaultColDef={{ resizable: true, suppressMovable: false }}
+                    suppressCellFocus
+                    enableCellTextSelection
+                    pagination
+                    paginationPageSize={50}
+                  />
+                </div>
+              )
+            )}
+
+            {/* Tab 1: Resumo por Produto */}
+            {activeTab === 1 && (
+              movLoading ? (
+                <div style={{ display:'flex', alignItems:'center', gap:'8px', padding:'18px 0', color:'#6b7280', fontSize:'0.78rem' }}>
+                  <Loader2 size={15} style={{ animation:'spin 1s linear infinite' }} /> Carregando...
+                </div>
+              ) : (
+                <div style={{ height:'270px' }}>
+                  <AgGridReact<{product_name:string; total_qty:number; total_value:number; currency:string}>
+                    theme={movTheme}
+                    rowData={productSummary}
+                    columnDefs={[
+                      { field: 'product_name', headerName: 'Produto', flex: 3, minWidth: 200,
+                        cellStyle: () => ({ fontSize:'10px', color:'#e5e7eb', fontWeight:'500' }), valueFormatter: p => p.value || '—' },
+                      { field: 'total_qty', headerName: 'Qtd. Total', width: 100,
+                        sortable: true, filter: 'agNumberColumnFilter',
+                        cellStyle: () => ({ textAlign:'right' as const, fontFamily:'monospace', fontSize:'10px', fontWeight:'700', color:'#60a5fa' }),
+                        valueFormatter: p => p.value?.toLocaleString('pt-BR') ?? '0' },
+                      { field: 'total_value', headerName: 'Valor Total', width: 155,
+                        sortable: true, filter: 'agNumberColumnFilter',
+                        cellRenderer: ({ value, data }: { value: number; data: { currency: string } }) => (
+                          <span style={{ fontFamily:'monospace', fontSize:'10px', color:'#34d399', fontWeight:'700' }}>
+                            {new Intl.NumberFormat('pt-BR',{ style:'currency', currency: data?.currency || 'BRL' }).format(value)}
+                          </span>
+                        )},
+                    ]}
+                    defaultColDef={{ resizable: true, suppressMovable: false }}
+                    suppressCellFocus
+                    enableCellTextSelection
+                    domLayout="autoHeight"
+                  />
+                </div>
+              )
             )}
           </div>
         </div>
