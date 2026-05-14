@@ -29,7 +29,7 @@ const darkTheme = themeQuartz.withParams({
   oddRowBackgroundColor: 'rgba(15,23,42,0.3)',
   selectedRowBackgroundColor: 'rgba(37,99,235,0.12)',
   fontFamily: 'Inter, system-ui, sans-serif',
-  fontSize: 13,
+  fontSize: 10,
   rowHeight: 44,
   headerHeight: 42,
 })
@@ -79,7 +79,7 @@ function indColor(v: string | null) { return v ? (IND_COLORS[v] || '#6b7280') : 
 function CustomerIdRenderer({ value }: ICellRendererParams) {
   return (
     <span style={{
-      fontFamily: 'monospace', fontSize: '13px', fontWeight: '700',
+      fontFamily: 'monospace', fontSize: '10px', fontWeight: '700',
       color: '#60a5fa', background: 'rgba(37,99,235,0.12)',
       padding: '2px 8px', borderRadius: '5px', display: 'inline-block'
     }}>{value}</span>
@@ -89,17 +89,17 @@ function CustomerIdRenderer({ value }: ICellRendererParams) {
 function NameRenderer({ value, data }: ICellRendererParams) {
   return (
     <div style={{ lineHeight: 1.3 }}>
-      <div style={{ fontWeight: '600', color: '#f9fafb', fontSize: '13px', fontFamily: 'Inter, system-ui, sans-serif' }}>{value}</div>
-      {data?.cnpj && <div style={{ fontFamily: 'monospace', fontSize: '11px', color: '#6b7280', marginTop: '1px' }}>{data.cnpj}</div>}
+      <div style={{ fontWeight: '600', color: '#f9fafb', fontSize: '10px', fontFamily: 'Inter, system-ui, sans-serif' }}>{value}</div>
+      {data?.cnpj && <div style={{ fontFamily: 'monospace', fontSize: '10px', color: '#6b7280', marginTop: '1px' }}>{data.cnpj}</div>}
     </div>
   )
 }
 
 function StateRenderer({ value }: ICellRendererParams) {
-  if (!value) return <span style={{ color: '#374151', fontSize: '13px' }}>—</span>
+  if (!value) return <span style={{ color: '#374151', fontSize: '10px' }}>—</span>
   return (
     <span style={{
-      fontFamily: 'monospace', fontSize: '13px', fontWeight: '700',
+      fontFamily: 'monospace', fontSize: '10px', fontWeight: '700',
       color: '#a78bfa', background: 'rgba(139,92,246,0.12)',
       padding: '2px 7px', borderRadius: '5px'
     }}>{value}</span>
@@ -107,22 +107,22 @@ function StateRenderer({ value }: ICellRendererParams) {
 }
 
 function IndustryRenderer({ value }: ICellRendererParams) {
-  if (!value) return <span style={{ color: '#374151', fontSize: '13px' }}>—</span>
+  if (!value) return <span style={{ color: '#374151', fontSize: '10px' }}>—</span>
   const color = indColor(value)
   return (
     <span style={{
-      display: 'inline-block', padding: '2px 8px', borderRadius: '6px',
+      display: 'inline-block', padding: '1px 6px', borderRadius: '6px',
       background: `${color}18`, border: `1px solid ${color}35`,
-      fontSize: '13px', fontWeight: '600', color, whiteSpace: 'nowrap',
+      fontSize: '10px', fontWeight: '600', color, whiteSpace: 'nowrap',
       fontFamily: 'Inter, system-ui, sans-serif'
     }}>{value}</span>
   )
 }
 
 function EmailRenderer({ value }: ICellRendererParams) {
-  if (!value) return <span style={{ color: '#374151', fontSize: '13px' }}>—</span>
+  if (!value) return <span style={{ color: '#374151', fontSize: '10px' }}>—</span>
   return (
-    <a href={`mailto:${value}`} style={{ color: '#60a5fa', fontSize: '13px', textDecoration: 'none', fontFamily: 'Inter, system-ui, sans-serif' }}
+    <a href={`mailto:${value}`} style={{ color: '#60a5fa', fontSize: '10px', textDecoration: 'none', fontFamily: 'Inter, system-ui, sans-serif' }}
       onMouseEnter={e => (e.currentTarget.style.textDecoration = 'underline')}
       onMouseLeave={e => (e.currentTarget.style.textDecoration = 'none')}>
       {value}
@@ -146,7 +146,7 @@ function StatusRenderer({ value, data, context }: ICellRendererParams) {
         ? <ToggleRight size={14} style={{ color: '#10b981' }} />
         : <ToggleLeft size={14} style={{ color: '#ef4444' }} />
       }
-      <span style={{ fontSize: '13px', fontWeight: '700', color: active ? '#10b981' : '#ef4444', fontFamily: 'Inter, system-ui, sans-serif' }}>
+      <span style={{ fontSize: '10px', fontWeight: '700', color: active ? '#10b981' : '#ef4444', fontFamily: 'Inter, system-ui, sans-serif' }}>
         {active ? 'Ativo' : 'Inativo'}
       </span>
     </button>
@@ -162,7 +162,7 @@ function ActionsRenderer({ data, context }: ICellRendererParams) {
         display: 'inline-flex', alignItems: 'center', gap: '5px',
         padding: '4px 10px', borderRadius: '7px', cursor: 'pointer',
         background: 'rgba(37,99,235,0.1)', border: '1px solid rgba(37,99,235,0.2)',
-        color: '#60a5fa', fontSize: '13px', fontWeight: '600', transition: 'all 0.15s',
+        color: '#60a5fa', fontSize: '10px', fontWeight: '600', transition: 'all 0.15s',
         fontFamily: 'Inter, system-ui, sans-serif'
       }}
       onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(37,99,235,0.2)' }}

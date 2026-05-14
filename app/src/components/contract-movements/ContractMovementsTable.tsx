@@ -26,7 +26,7 @@ const darkTheme = themeQuartz.withParams({
   oddRowBackgroundColor: 'rgba(15,23,42,0.3)',
   selectedRowBackgroundColor: 'rgba(37,99,235,0.12)',
   fontFamily: 'Inter, system-ui, sans-serif',
-  fontSize: 13,
+  fontSize: 10,
   rowHeight: 44,
   headerHeight: 42,
 })
@@ -79,52 +79,52 @@ function StatusRenderer({ value }: { value: string }) {
   const style = STATUS_COLORS[value?.toUpperCase()] || { bg: 'rgba(75,85,99,0.3)', color: '#9ca3af' }
   return value ? (
     <span style={{
-      padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '700',
+      padding: '2px 7px', borderRadius: '20px', fontSize: '10px', fontWeight: '700',
       letterSpacing: '0.04em', textTransform: 'uppercase',
       fontFamily: 'Inter, system-ui, sans-serif',
       background: style.bg, color: style.color,
     }}>
       {value}
     </span>
-  ) : <span style={{ color: '#4b5563', fontSize: '13px' }}>—</span>
+  ) : <span style={{ color: '#4b5563', fontSize: '10px' }}>—</span>
 }
 
 function AmountRenderer({ value, data }: { value: number | null; data: ContractMovement }) {
-  if (value === null || value === undefined) return <span style={{ color: '#4b5563', fontSize: '13px' }}>—</span>
+  if (value === null || value === undefined) return <span style={{ color: '#4b5563', fontSize: '10px' }}>—</span>
   const cur = data?.currency || 'BRL'
   return (
-    <span style={{ fontFamily: 'monospace', fontSize: '13px', color: '#34d399', fontWeight: '600' }}>
+    <span style={{ fontFamily: 'monospace', fontSize: '10px', color: '#34d399', fontWeight: '600' }}>
       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: cur, minimumFractionDigits: 2 }).format(value)}
     </span>
   )
 }
 
 function DiscountRenderer({ value }: { value: number | null }) {
-  if (value === null || value === undefined) return <span style={{ color: '#4b5563', fontSize: '13px' }}>—</span>
+  if (value === null || value === undefined) return <span style={{ color: '#4b5563', fontSize: '10px' }}>—</span>
   return (
-    <span style={{ color: value > 0 ? '#fbbf24' : '#6b7280', fontFamily: 'monospace', fontSize: '13px' }}>
+    <span style={{ color: value > 0 ? '#fbbf24' : '#6b7280', fontFamily: 'monospace', fontSize: '10px' }}>
       {value.toFixed(1)}%
     </span>
   )
 }
 
 function DateRenderer({ value }: { value: string | null }) {
-  if (!value) return <span style={{ color: '#4b5563', fontSize: '13px' }}>—</span>
+  if (!value) return <span style={{ color: '#4b5563', fontSize: '10px' }}>—</span>
   const d = new Date(value)
-  if (isNaN(d.getTime())) return <span style={{ color: '#9ca3af', fontSize: '13px' }}>{value}</span>
-  return <span style={{ color: '#9ca3af', fontFamily: 'monospace', fontSize: '13px' }}>
+  if (isNaN(d.getTime())) return <span style={{ color: '#9ca3af', fontSize: '10px' }}>{value}</span>
+  return <span style={{ color: '#9ca3af', fontFamily: 'monospace', fontSize: '10px' }}>
     {d.toLocaleDateString('pt-BR')}
   </span>
 }
 
 function OrderTypeRenderer({ value }: { value: string | null }) {
-  if (!value) return <span style={{ color: '#4b5563', fontSize: '13px' }}>—</span>
+  if (!value) return <span style={{ color: '#4b5563', fontSize: '10px' }}>—</span>
   const colors: Record<string, string> = {
     Addition: '#60a5fa', Renewal: '#34d399', Termination: '#f87171',
     Conversion: '#a78bfa', Suspension: '#fbbf24',
   }
   const c = colors[value] || '#9ca3af'
-  return <span style={{ color: c, fontWeight: '600', fontSize: '13px', fontFamily: 'Inter, system-ui, sans-serif' }}>{value}</span>
+  return <span style={{ color: c, fontWeight: '600', fontSize: '10px', fontFamily: 'Inter, system-ui, sans-serif' }}>{value}</span>
 }
 
 // ── KPI Card ──────────────────────────────────────────────────────────────────
@@ -186,7 +186,7 @@ export function ContractMovementsTable({ initialData }: Props) {
     {
       field: 'order_id', headerName: 'Order ID', width: 130,
       pinned: 'left', filter: true, sortable: true,
-      cellStyle: () => ({ fontFamily: 'monospace', fontSize: '0.78rem', color: '#60a5fa', fontWeight: '600' }),
+      cellStyle: () => ({ fontFamily: 'monospace', fontSize: '10px', color: '#60a5fa', fontWeight: '600' }),
     },
     {
       field: 'status', headerName: 'Status', width: 130,
@@ -200,17 +200,17 @@ export function ContractMovementsTable({ initialData }: Props) {
     {
       field: 'customer_id', headerName: 'Customer ID', width: 130,
       filter: true, sortable: true,
-      cellStyle: () => ({ fontFamily: 'monospace', fontSize: '0.78rem', color: '#9ca3af' }),
+      cellStyle: () => ({ fontFamily: 'monospace', fontSize: '10px', color: '#9ca3af' }),
     },
     {
       field: 'contract_id', headerName: 'Contract ID', width: 130,
       filter: true, sortable: true,
-      cellStyle: () => ({ fontFamily: 'monospace', fontSize: '0.78rem', color: '#a78bfa' }),
+      cellStyle: () => ({ fontFamily: 'monospace', fontSize: '10px', color: '#a78bfa' }),
     },
     {
       field: 'sales_order_id', headerName: 'Sales Order ID', width: 130,
       filter: true, sortable: true,
-      cellStyle: () => ({ fontFamily: 'monospace', fontSize: '0.78rem', color: '#9ca3af' }),
+      cellStyle: () => ({ fontFamily: 'monospace', fontSize: '10px', color: '#9ca3af' }),
       valueFormatter: (p: ValueFormatterParams) => p.value || '—',
     },
     {
@@ -233,12 +233,12 @@ export function ContractMovementsTable({ initialData }: Props) {
     {
       field: 'product_name', headerName: 'Produto', flex: 2, minWidth: 200,
       filter: true, sortable: true,
-      cellStyle: () => ({ color: '#e5e7eb', fontSize: '0.8rem' }),
+      cellStyle: () => ({ color: '#e5e7eb', fontSize: '10px' }),
     },
     {
       field: 'solution', headerName: 'Solução', flex: 1, minWidth: 160,
       filter: true, sortable: true,
-      cellStyle: () => ({ color: '#9ca3af', fontSize: '0.78rem' }),
+      cellStyle: () => ({ color: '#9ca3af', fontSize: '10px' }),
       valueFormatter: (p: ValueFormatterParams) => p.value || '—',
     },
     {
@@ -278,19 +278,19 @@ export function ContractMovementsTable({ initialData }: Props) {
     {
       field: 'promo_code_used', headerName: 'Cód. Promo', width: 120,
       filter: true,
-      cellStyle: () => ({ fontFamily: 'monospace', fontSize: '0.76rem', color: '#fbbf24' }),
+      cellStyle: () => ({ fontFamily: 'monospace', fontSize: '10px', color: '#fbbf24' }),
       valueFormatter: (p: ValueFormatterParams) => p.value || '—',
     },
     {
       field: 'partner_name', headerName: 'Parceiro', flex: 1, minWidth: 160,
       filter: true, sortable: true,
-      cellStyle: () => ({ color: '#9ca3af', fontSize: '0.8rem' }),
+      cellStyle: () => ({ color: '#9ca3af', fontSize: '10px' }),
       valueFormatter: (p: ValueFormatterParams) => p.value || '—',
     },
     {
       field: 'partner_id', headerName: 'Partner ID', width: 120,
       filter: true,
-      cellStyle: () => ({ fontFamily: 'monospace', fontSize: '0.76rem', color: '#9ca3af' }),
+      cellStyle: () => ({ fontFamily: 'monospace', fontSize: '10px', color: '#9ca3af' }),
       valueFormatter: (p: ValueFormatterParams) => p.value || '—',
     },
     {
