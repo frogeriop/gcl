@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { redirect } from 'next/navigation'
 import { Sidebar } from '@/components/layout/Sidebar'
 
@@ -8,8 +9,14 @@ export default async function AppGroupLayout({ children }: { children: React.Rea
 
   if (!user) redirect('/login')
 
-  // Buscar perfil do usuário com tenant
-  const { data: profile } = await supabase
+  // Usar service role para buscar o perfil — evita bug de RLS recursivo
+  const svc = createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  )
+
+  const { data: profile } = await svc
     .from('user_profiles')
     .select('*, tenants(name)')
     .eq('id', user.id)

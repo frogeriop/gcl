@@ -2,9 +2,9 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'LicenseAudit SAP | Controle de Licenciamento SAP',
-  description: 'Plataforma SaaS para auditoria e controle inteligente de licenciamento SAP. Identifique desperdícios, otimize custos e garanta conformidade.',
-  keywords: 'SAP, licenciamento, auditoria, compliance, otimização',
+  title: 'GCL | Gestão de Contratos de Licenciamentos',
+  description: 'Plataforma SaaS para gestão de contratos de licenciamentos SAP. Controle clientes, contratos e relatórios de licenciamento.',
+  keywords: 'SAP, licenciamento, contratos, gestão, compliance',
 }
 
 export default function RootLayout({
@@ -13,8 +13,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="pt-BR">
-      <body>{children}</body>
+    <html lang="pt-BR" suppressHydrationWarning>
+      <body suppressHydrationWarning>{children}</body>
     </html>
   )
 }

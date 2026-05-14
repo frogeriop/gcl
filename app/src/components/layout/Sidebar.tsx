@@ -5,9 +5,9 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import {
-  LayoutDashboard, Shield, Server, Users, FileText, 
+  LayoutDashboard, Shield, FileText,
   BarChart3, Settings, LogOut, ChevronLeft, ChevronRight,
-  Bell, Search, Building2, AlertTriangle, Key
+  Bell, Search, Building2, AlertTriangle, Key, Users, ArrowLeftRight
 } from 'lucide-react'
 
 interface SidebarProps {
@@ -17,18 +17,36 @@ interface SidebarProps {
 }
 
 const navItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/audit', label: 'Auditorias', icon: Shield },
-  { href: '/systems', label: 'Sistemas SAP', icon: Server },
-  { href: '/users', label: 'Usuários SAP', icon: Users },
-  { href: '/contracts', label: 'Contratos', icon: FileText },
-  { href: '/reports', label: 'Relatórios', icon: BarChart3 },
-  { href: '/settings', label: 'Configurações', icon: Settings },
+  { href: '/dashboard',          label: 'Dashboard',             icon: LayoutDashboard },
+  { href: '/customers',          label: 'Clientes',              icon: Building2 },
+  { href: '/contract-movements', label: 'Movimentações',          icon: ArrowLeftRight },
+  { href: '/contracts',          label: 'Contratos',             icon: FileText },
+  { href: '/reports',            label: 'Relatórios',            icon: BarChart3 },
+  { href: '/settings',           label: 'Configurações',         icon: Settings },
 ]
 
 const superAdminItems = [
+  { href: '/admin/tenants', label: 'Tenants', icon: Building2 },
+  { href: '/admin/users', label: 'Usuários', icon: Users },
   { href: '/admin/settings', label: 'Config. da Plataforma', icon: Key },
 ]
+
+function RoleLabel({ role }: { role: string }) {
+  const isSuperAdmin = role === 'super_admin'
+  return (
+    <div style={{
+      display: 'inline-flex', alignItems: 'center', gap: '4px',
+      fontSize: '0.68rem', fontWeight: '700',
+      padding: '2px 8px', borderRadius: '6px', marginTop: '3px',
+      background: isSuperAdmin ? 'rgba(139, 92, 246, 0.15)' : 'rgba(31, 41, 55, 0.6)',
+      border: `1px solid ${isSuperAdmin ? 'rgba(139, 92, 246, 0.3)' : 'rgba(55, 65, 81, 0.4)'}`,
+      color: isSuperAdmin ? '#a78bfa' : '#6b7280',
+      textTransform: 'uppercase', letterSpacing: '0.06em'
+    }}>
+      {isSuperAdmin ? '★ Super Admin' : role.replace('_', ' ')}
+    </div>
+  )
+}
 
 export function Sidebar({ tenantName = 'ACME S.A.', userEmail = '', userRole = 'admin' }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false)
@@ -76,11 +94,11 @@ export function Sidebar({ tenantName = 'ACME S.A.', userEmail = '', userRole = '
         </div>
         {!collapsed && (
           <div style={{ overflow: 'hidden' }}>
-            <div style={{ fontSize: '0.9375rem', fontWeight: '700', color: '#f9fafb', whiteSpace: 'nowrap' }}>
-              LicenseAudit
+            <div style={{ fontSize: '0.82rem', fontWeight: '800', color: '#f9fafb', whiteSpace: 'nowrap', letterSpacing: '-0.01em' }}>
+              GCL
             </div>
-            <div style={{ fontSize: '0.65rem', color: '#6b7280', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>
-              SAP INTELLIGENCE
+            <div style={{ fontSize: '0.6rem', color: '#6b7280', letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>
+              Gestão de Contratos de Licenciamentos
             </div>
           </div>
         )}
@@ -181,9 +199,7 @@ export function Sidebar({ tenantName = 'ACME S.A.', userEmail = '', userRole = '
             <div style={{ fontSize: '0.8rem', color: '#e5e7eb', fontWeight: '500', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {userEmail || 'admin@empresa.com'}
             </div>
-            <div style={{ fontSize: '0.7rem', color: '#6b7280', textTransform: 'capitalize', marginTop: '2px' }}>
-              {userRole}
-            </div>
+            <RoleLabel role={userRole} />
           </div>
         )}
         <button

@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createClient as createServiceClient } from '@supabase/supabase-js'
 import * as XLSX from 'xlsx'
 
 // Mapeamento de colunas do Excel → campos do banco
-// Suporta variações de nome de header
+// Suporta variações de nome de header (PT e EN)
 const COL_MAP: Record<string, string> = {
   'customer id': 'customer_id',
   'customerid': 'customer_id',
@@ -12,6 +13,7 @@ const COL_MAP: Record<string, string> = {
   'customername': 'customer_name',
   'nome': 'customer_name',
   'razao social': 'customer_name',
+  'razão social': 'customer_name',
   'city': 'city',
   'cidade': 'city',
   'estate': 'estate',
@@ -19,6 +21,7 @@ const COL_MAP: Record<string, string> = {
   'uf': 'estate',
   'country': 'country',
   'pais': 'country',
+  'país': 'country',
   'zipcode': 'zip_cod',
   'zip cod': 'zip_cod',
   'zip_cod': 'zip_cod',
@@ -43,25 +46,41 @@ function normalizeHeader(h: string): string {
   return h.trim().toLowerCase().replace(/\s+/g, ' ')
 }
 
+// Cliente service-role: ignora RLS, usado apenas server-side após auth verificado
+function getServiceClient() {
+  return createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  )
+}
+
 export async function POST(req: NextRequest) {
   try {
+    // 1. Verificar sessão do usuário via anon client (cookies)
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (!user || authError) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
 
-    // Buscar tenant_id do usuário logado
-    const { data: profile } = await supabase
+    // 2. Buscar perfil via service role (bypassa RLS que bloqueia em API routes)
+    const service = getServiceClient()
+    const { data: profile, error: profileError } = await service
       .from('user_profiles')
       .select('tenant_id, role')
       .eq('id', user.id)
       .single()
 
-    if (!profile?.tenant_id) {
-      return NextResponse.json({ error: 'Tenant não encontrado' }, { status: 403 })
+    if (profileError || !profile?.tenant_id) {
+      console.error('[import] profile error:', profileError?.message, '| user:', user.id)
+      return NextResponse.json(
+        { error: `Perfil não encontrado para o usuário ${user.id}` },
+        { status: 403 }
+      )
     }
 
+    // 3. Ler arquivo
     const formData = await req.formData()
     const file = formData.get('file') as File | null
     if (!file) {
@@ -76,7 +95,7 @@ export async function POST(req: NextRequest) {
       }, { status: 400 })
     }
 
-    // Ler arquivo como ArrayBuffer
+    // 4. Parsear Excel
     const buffer = await file.arrayBuffer()
     const workbook = XLSX.read(buffer, { type: 'array' })
 
@@ -94,7 +113,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Planilha vazia' }, { status: 400 })
     }
 
-    // Mapear headers da planilha para campos do banco
+    // 5. Mapear headers
     const firstRow = rows[0]
     const headerMap: Record<string, string> = {}
     for (const key of Object.keys(firstRow)) {
@@ -106,11 +125,11 @@ export async function POST(req: NextRequest) {
 
     if (!Object.values(headerMap).includes('customer_id')) {
       return NextResponse.json({
-        error: 'Coluna obrigatória "Customer ID" não encontrada na planilha'
+        error: `Coluna obrigatória "Customer ID" não encontrada. Colunas detectadas: ${Object.keys(firstRow).join(', ')}`
       }, { status: 400 })
     }
 
-    // Montar registros para upsert
+    // 6. Montar registros
     const now = new Date().toISOString()
     const records = rows
       .map(row => {
@@ -125,24 +144,33 @@ export async function POST(req: NextRequest) {
         }
         return record
       })
-      .filter(r => r.customer_id) // ignorar linhas sem customer_id
+    // ignorar linhas sem customer_id
+      .filter(r => r.customer_id)
 
-    if (records.length === 0) {
+    // Deduplicar por customer_id — manter última ocorrência
+    // (evita "ON CONFLICT DO UPDATE command cannot affect row a second time")
+    const dedupMap = new Map<string, Record<string, any>>()
+    for (const record of records) {
+      dedupMap.set(record.customer_id, record)
+    }
+    const uniqueRecords = Array.from(dedupMap.values())
+    const duplicatesRemoved = records.length - uniqueRecords.length
+
+    if (uniqueRecords.length === 0) {
       return NextResponse.json({
-        error: 'Nenhum registro válido encontrado (customer_id ausente em todas as linhas)'
+        error: 'Nenhum registro válido encontrado (Customer ID ausente em todas as linhas)'
       }, { status: 400 })
     }
 
-    // Upsert em lotes de 200
+    // 7. Upsert em lotes via service role (bypassa RLS para escrita)
     const BATCH_SIZE = 200
-    let inserted = 0
-    let updated = 0
-    let errors: string[] = []
+    let totalInserted = 0
+    const errors: string[] = []
 
-    for (let i = 0; i < records.length; i += BATCH_SIZE) {
-      const batch = records.slice(i, i + BATCH_SIZE)
+    for (let i = 0; i < uniqueRecords.length; i += BATCH_SIZE) {
+      const batch = uniqueRecords.slice(i, i + BATCH_SIZE)
 
-      const { data, error } = await supabase
+      const { data, error } = await service
         .from('licensed_customers')
         .upsert(batch, {
           onConflict: 'customer_id,tenant_id',
@@ -152,24 +180,29 @@ export async function POST(req: NextRequest) {
 
       if (error) {
         errors.push(`Lote ${Math.floor(i / BATCH_SIZE) + 1}: ${error.message}`)
+        console.error('[import] upsert error:', error)
       } else {
-        inserted += data?.length || 0
+        totalInserted += data?.length || batch.length
       }
     }
 
-    // Contar quantos já existiam (simples: total - inserted = updated)
-    const totalProcessed = records.length - errors.length
-    
+    const totalProcessed = uniqueRecords.length
+
+    const duplicateNote = duplicatesRemoved > 0
+      ? ` (${duplicatesRemoved} linha${duplicatesRemoved > 1 ? 's duplicadas' : ' duplicada'} na planilha ignorada${duplicatesRemoved > 1 ? 's' : ''})`
+      : ''
+
     return NextResponse.json({
       success: true,
       total: records.length,
       processed: totalProcessed,
+      duplicatesRemoved,
       errors: errors.length > 0 ? errors : undefined,
-      message: `${totalProcessed} clientes importados/atualizados com sucesso`,
+      message: `${totalProcessed} clientes importados/atualizados com sucesso${duplicateNote}`,
     })
 
   } catch (err: any) {
-    console.error('[import-customers]', err)
-    return NextResponse.json({ error: err.message || 'Erro interno' }, { status: 500 })
+    console.error('[import-customers] unexpected error:', err)
+    return NextResponse.json({ error: err.message || 'Erro interno no servidor' }, { status: 500 })
   }
 }

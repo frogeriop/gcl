@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { Shield, Mail, Lock, Eye, EyeOff, BarChart3, AlertTriangle, TrendingDown } from 'lucide-react'
+import { Shield, Mail, Lock, Eye, EyeOff, FileText, BarChart3, AlertTriangle } from 'lucide-react'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -80,8 +80,8 @@ export default function LoginPage() {
               <Shield size={26} color="white" />
             </div>
             <div>
-              <div style={{ fontSize: '1.375rem', fontWeight: '700', color: '#f9fafb' }}>LicenseAudit</div>
-              <div style={{ fontSize: '0.75rem', color: '#6b7280', letterSpacing: '0.05em' }}>SAP LICENSE INTELLIGENCE</div>
+              <div style={{ fontSize: '1.375rem', fontWeight: '800', color: '#f9fafb' }}>GCL</div>
+              <div style={{ fontSize: '0.72rem', color: '#6b7280', letterSpacing: '0.04em' }}>GESTÃO DE CONTRATOS DE LICENCIAMENTOS</div>
             </div>
           </div>
 
@@ -89,20 +89,20 @@ export default function LoginPage() {
             fontSize: '2.5rem', fontWeight: '800', lineHeight: '1.2',
             color: '#f9fafb', letterSpacing: '-0.025em', marginBottom: '20px'
           }}>
-            Controle total do<br/>
-            <span className="gradient-text">licenciamento SAP</span>
+            Gestão inteligente de<br/>
+            <span className="gradient-text">contratos de licenciamentos</span>
           </h1>
 
           <p style={{ fontSize: '1rem', color: '#9ca3af', lineHeight: '1.7', marginBottom: '48px' }}>
-            Identifique desperdícios, otimize custos e garanta conformidade com as políticas de licenciamento SAP — tudo em uma plataforma inteligente.
+            Controle clientes, contratos e relatórios de licenciamento SAP em uma plataforma centralizada e segura.
           </p>
 
           {/* Feature highlights */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {[
-              { icon: <AlertTriangle size={18} />, color: '#f59e0b', text: 'Detecção automática de não-conformidades' },
-              { icon: <TrendingDown size={18} />, color: '#34d399', text: 'Identificação de oportunidades de economia' },
-              { icon: <BarChart3 size={18} />, color: '#60a5fa', text: 'Dashboards e relatórios executivos' },
+              { icon: <FileText size={18} />, color: '#3b82f6', text: 'Gestão centralizada de contratos SAP' },
+              { icon: <AlertTriangle size={18} />, color: '#f59e0b', text: 'Alertas de vencimento e renovação' },
+              { icon: <BarChart3 size={18} />, color: '#34d399', text: 'Relatórios executivos e dashboards' },
             ].map((feat, i) => (
               <div key={i} style={{
                 display: 'flex', alignItems: 'center', gap: '14px',
@@ -152,7 +152,7 @@ export default function LoginPage() {
             }}>
               <Shield size={22} color="white" />
             </div>
-            <div style={{ fontSize: '1.25rem', fontWeight: '700', color: '#f9fafb' }}>LicenseAudit SAP</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: '800', color: '#f9fafb' }}>GCL</div>
           </div>
 
           <div style={{ marginBottom: '32px' }}>

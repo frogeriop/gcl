@@ -135,19 +135,11 @@ export default async function PlatformSettingsPage() {
           {/* Nav lateral */}
           <div className="section-card" style={{ padding: '8px', position: 'sticky', top: '24px' }}>
             {navItems.map((item, i) => (
-              <a key={i} href={item.href} style={{
+              <a key={i} href={item.href} className="settings-nav-link" style={{
                 display: 'flex', alignItems: 'center', gap: '10px',
                 padding: '10px 12px', borderRadius: '8px',
                 color: '#9ca3af', fontSize: '0.8125rem', fontWeight: '500',
                 textDecoration: 'none', transition: 'all 0.15s',
-              }}
-              onMouseEnter={e => {
-                (e.currentTarget as HTMLElement).style.background = 'rgba(31, 41, 55, 0.8)'
-                ;(e.currentTarget as HTMLElement).style.color = '#e5e7eb'
-              }}
-              onMouseLeave={e => {
-                (e.currentTarget as HTMLElement).style.background = 'none'
-                ;(e.currentTarget as HTMLElement).style.color = '#9ca3af'
               }}>
                 <span style={{ color: '#4b5563' }}>{item.icon}</span>
                 {item.label}
@@ -411,6 +403,10 @@ export default async function PlatformSettingsPage() {
           font-weight: 500;
           color: #9ca3af;
           margin-bottom: 7px;
+        }
+        .settings-nav-link:hover {
+          background: rgba(31,41,55,0.8);
+          color: #e5e7eb;
         }
       `}</style>
     </div>

@@ -171,17 +171,14 @@ export default async function DashboardPage() {
             </div>
             <div style={{ padding: '8px 0' }}>
               {audits && audits.length > 0 ? audits.map((audit) => (
-                <div key={audit.id} style={{
+                <div key={audit.id} className="audit-row-hover" style={{
                   padding: '16px 24px',
                   borderBottom: '1px solid rgba(55, 65, 81, 0.25)',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '16px',
-                  transition: 'background 0.15s',
                   cursor: 'pointer'
                 }}
-                onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = 'rgba(59, 130, 246, 0.04)'}
-                onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = 'transparent'}
                 >
                   {/* Risk indicator */}
                   <div style={{
@@ -378,6 +375,10 @@ export default async function DashboardPage() {
           </div>
         </div>
 
+        <style>{`
+          .audit-row-hover { transition: background 0.15s; }
+          .audit-row-hover:hover { background: rgba(59,130,246,0.04); }
+        `}</style>
       </main>
     </div>
   )

@@ -208,22 +208,16 @@ export default async function ReportsPage() {
           </div>
           <div style={{ padding: '20px 24px', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
             {reportTemplates.map((tmpl, i) => (
-              <div key={i} style={{
+              <div key={i} className="report-card-hover" style={{
                 padding: '18px',
                 background: 'rgba(31, 41, 55, 0.4)',
                 border: '1px solid rgba(55, 65, 81, 0.4)',
                 borderRadius: '12px',
                 transition: 'all 0.2s ease',
-                cursor: 'pointer'
-              }}
-              onMouseEnter={e => {
-                (e.currentTarget as HTMLDivElement).style.borderColor = `${tmpl.color}40`
-                ;(e.currentTarget as HTMLDivElement).style.background = `${tmpl.color}08`
-              }}
-              onMouseLeave={e => {
-                (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(55, 65, 81, 0.4)'
-                ;(e.currentTarget as HTMLDivElement).style.background = 'rgba(31, 41, 55, 0.4)'
-              }}
+                cursor: 'pointer',
+                '--hover-border': `${tmpl.color}40`,
+                '--hover-bg': `${tmpl.color}08`,
+              } as React.CSSProperties}
               >
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '10px' }}>
                   <div style={{
@@ -273,6 +267,10 @@ export default async function ReportsPage() {
           </div>
         </div>
       </main>
+      <style>{`
+        .report-card-hover { transition: all 0.2s ease; }
+        .report-card-hover:hover { background: rgba(59,130,246,0.06) !important; border-color: rgba(59,130,246,0.3) !important; }
+      `}</style>
     </div>
   )
 }
