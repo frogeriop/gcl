@@ -7,9 +7,9 @@
     "build": "next build",
     "start": "next start --port 3020",
     "lint": "eslint",
-    "build:cf": "opennextjs-cloudflare build",
-    "preview:cf": "opennextjs-cloudflare build && npx wrangler dev",
-    "deploy": "opennextjs-cloudflare build && npx wrangler deploy"
+    "build:cf": "node build-cf.mjs",
+    "preview:cf": "node build-cf.mjs && npx wrangler dev",
+    "deploy": "node build-cf.mjs && npx wrangler deploy"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.3",

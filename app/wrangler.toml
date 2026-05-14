@@ -3,6 +3,10 @@ main = ".open-next/worker.js"
 compatibility_date = "2025-04-01"
 compatibility_flags = ["nodejs_compat"]
 
+# ── Build command (executado automaticamente pelo CI antes do deploy) ──────────
+[build]
+command = "npm ci && node build-cf.mjs"
+
 [observability]
 enabled = true
 

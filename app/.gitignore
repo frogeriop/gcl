@@ -36,6 +36,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# cloudflare workers build output (generated in CI by wrangler [build] command)
+.open-next/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
