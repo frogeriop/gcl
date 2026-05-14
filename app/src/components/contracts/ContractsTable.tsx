@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { AgGridReact } from 'ag-grid-react'
 import {
   AllCommunityModule, ModuleRegistry,
@@ -8,9 +8,10 @@ import {
 } from 'ag-grid-community'
 import {
   Search, Filter, RefreshCw, Wand2,
-  FileText, TrendingUp, DollarSign, CheckCircle2,
-  X, Loader2, AlertTriangle, CheckCheck, Database, Users, ToggleLeft, ToggleRight,
+  FileText, DollarSign, CheckCircle2,
+  X, Loader2, AlertTriangle, CheckCheck, Database, ToggleLeft, ToggleRight,
 } from 'lucide-react'
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 
 ModuleRegistry.registerModules([AllCommunityModule])
 
@@ -194,10 +195,18 @@ export function ContractsTable({ initialData }: Props) {
   const [generateResult, setGenerateResult] = useState<GenerateResult | null>(null)
 
   // ── KPIs ──────────────────────────────────────────────────────────────────
-  const totalValue   = useMemo(() => contracts.reduce((s, c) => s + (c.total_value || c.net_amount || 0), 0), [contracts])
-  const activeCount  = useMemo(() => contracts.filter(c => c.is_active !== false).length, [contracts])
-  const inactiveCount = useMemo(() => contracts.filter(c => c.is_active === false).length, [contracts])
+  const totalValue      = useMemo(() => contracts.reduce((s, c) => s + (c.total_value || c.net_amount || 0), 0), [contracts])
+  const activeCount     = useMemo(() => contracts.filter(c => c.is_active !== false).length, [contracts])
+  const inactiveCount   = useMemo(() => contracts.filter(c => c.is_active === false).length, [contracts])
+  const activeValue     = useMemo(() => contracts.filter(c => c.is_active !== false).reduce((s, c) => s + (c.total_value || c.net_amount || 0), 0), [contracts])
+  const inactiveValue   = useMemo(() => contracts.filter(c => c.is_active === false).reduce((s, c) => s + (c.total_value || c.net_amount || 0), 0), [contracts])
   const uniqueCustomers = useMemo(() => new Set(contracts.map(c => c.customer_id).filter(Boolean)).size, [contracts])
+
+  // ── Pie Chart data ────────────────────────────────────────────────────────
+  const pieData = useMemo(() => [
+    { name: 'Ativos',   value: activeCount,   color: '#34d399' },
+    { name: 'Inativos', value: inactiveCount, color: '#f87171' },
+  ], [activeCount, inactiveCount])
 
   // ── Filter ────────────────────────────────────────────────────────────────
   const filteredData = useMemo(() => {
@@ -229,38 +238,112 @@ export function ContractsTable({ initialData }: Props) {
 
   // ── Column Definitions ────────────────────────────────────────────────────
   const colDefs = useMemo<ColDef<Contract>[]>(() => [
-    { field: 'contract_id',  headerName: 'Contract ID',  width: 140, pinned: 'left', filter: true, sortable: true, cellStyle: () => ({ fontFamily: 'monospace', fontSize: '13px', color: '#a78bfa', fontWeight: '600' }) },
-    { field: 'customer_name', headerName: 'Cliente',     flex: 2, minWidth: 180, filter: true, sortable: true, cellStyle: () => ({ fontSize: '13px', color: '#f9fafb', fontWeight: '500' }), valueFormatter: (p: ValueFormatterParams) => p.value || '—' },
-    { field: 'customer_id',  headerName: 'Customer ID',  width: 130, filter: true, sortable: true, cellStyle: () => ({ fontFamily: 'monospace', fontSize: '13px', color: '#60a5fa' }), valueFormatter: (p: ValueFormatterParams) => p.value || '—' },
-    { field: 'is_active',    headerName: 'Status',       width: 130, sortable: true, cellRenderer: StatusRenderer },
-    { field: 'solution',     headerName: 'Solução',      flex: 2, minWidth: 180, filter: true, sortable: true, cellStyle: () => ({ fontSize: '13px', color: '#d1d5db' }), valueFormatter: (p: ValueFormatterParams) => p.value || '—' },
-    { field: 'total_value',  headerName: 'Valor Total',  width: 155, sortable: true, filter: 'agNumberColumnFilter', cellRenderer: AmountRenderer },
-    { field: 'currency',     headerName: 'Moeda',        width: 90,  filter: true, cellStyle: () => ({ fontFamily: 'monospace', fontSize: '13px', color: '#9ca3af' }), valueFormatter: (p: ValueFormatterParams) => p.value || 'BRL' },
-    { field: 'contract_start_date',    headerName: 'Início',              width: 120, cellRenderer: DateRenderer, sortable: true },
-    { field: 'contract_duration',       headerName: 'Duração',             width: 110, filter: true, cellStyle: () => ({ fontSize: '13px', color: '#9ca3af' }), valueFormatter: (p: ValueFormatterParams) => p.value || '—' },
-    { field: 'contract_end_date',       headerName: 'Data Final',          width: 120, cellRenderer: DateRenderer, sortable: true },
-    { field: 'last_cancellation_date',  headerName: 'Last Cancellation',   width: 135, cellRenderer: DateRenderer, sortable: true },
-    { field: 'partner_name', headerName: 'Parceiro',     width: 180, filter: true, sortable: true, cellStyle: () => ({ fontSize: '13px', color: '#d1d5db' }), valueFormatter: (p: ValueFormatterParams) => p.value || '—' },
-    { field: 'deal_specific_discount', headerName: 'Desc. Deal %', width: 115, cellRenderer: DiscountRenderer, sortable: true },
-    { field: 'promo_discount',  headerName: 'Desc. Promo %',   width: 120, cellRenderer: DiscountRenderer, sortable: true },
-    { field: 'partner_discount', headerName: 'Desc. Partner %', width: 125, cellRenderer: DiscountRenderer, sortable: true },
-    { field: 'creation_date', headerName: 'Data Criação', width: 120, cellRenderer: DateRenderer, sortable: true },
+    { field: 'is_active',              headerName: 'Status',              width: 130, pinned: 'left', sortable: true, cellRenderer: StatusRenderer },
+    { field: 'contract_id',            headerName: 'Contract ID',         width: 140, pinned: 'left', filter: true, sortable: true, cellStyle: () => ({ fontFamily: 'monospace', fontSize: '13px', color: '#a78bfa', fontWeight: '600' }) },
+    { field: 'customer_id',            headerName: 'Customer ID',         width: 130, filter: true, sortable: true, cellStyle: () => ({ fontFamily: 'monospace', fontSize: '13px', color: '#60a5fa' }), valueFormatter: (p: ValueFormatterParams) => p.value || '—' },
+    { field: 'customer_name',          headerName: 'Cliente',             flex: 2, minWidth: 180, filter: true, sortable: true, cellStyle: () => ({ fontSize: '13px', color: '#f9fafb', fontWeight: '500' }), valueFormatter: (p: ValueFormatterParams) => p.value || '—' },
+    { field: 'total_value',            headerName: 'Valor Total',         width: 155, sortable: true, filter: 'agNumberColumnFilter', cellRenderer: AmountRenderer },
+    { field: 'creation_date',          headerName: 'Data Criação',        width: 120, cellRenderer: DateRenderer, sortable: true },
+    { field: 'contract_duration',      headerName: 'Duração',             width: 110, filter: true, cellStyle: () => ({ fontSize: '13px', color: '#9ca3af' }), valueFormatter: (p: ValueFormatterParams) => p.value || '—' },
+    { field: 'contract_start_date',    headerName: 'Data Inicial',        width: 120, cellRenderer: DateRenderer, sortable: true },
+    { field: 'contract_end_date',      headerName: 'Data Final',          width: 120, cellRenderer: DateRenderer, sortable: true },
+    { field: 'last_cancellation_date', headerName: 'Last Cancellation',   width: 145, cellRenderer: DateRenderer, sortable: true },
+    { field: 'deal_specific_discount', headerName: '% Desc. Deal',        width: 120, cellRenderer: DiscountRenderer, sortable: true },
+    { field: 'partner_discount',       headerName: '% Desc. Parceiro',    width: 135, cellRenderer: DiscountRenderer, sortable: true },
+    { field: 'promo_discount',         headerName: '% Desc. Promo',       width: 125, cellRenderer: DiscountRenderer, sortable: true },
+    { field: 'solution',               headerName: 'Solução',             flex: 2, minWidth: 180, filter: true, sortable: true, cellStyle: () => ({ fontSize: '13px', color: '#d1d5db' }), valueFormatter: (p: ValueFormatterParams) => p.value || '—' },
+    { field: 'currency',               headerName: 'Moeda',               width: 90,  filter: true, cellStyle: () => ({ fontFamily: 'monospace', fontSize: '13px', color: '#9ca3af' }), valueFormatter: (p: ValueFormatterParams) => p.value || 'BRL' },
+    { field: 'partner_name',           headerName: 'Parceiro',            width: 180, filter: true, sortable: true, cellStyle: () => ({ fontSize: '13px', color: '#d1d5db' }), valueFormatter: (p: ValueFormatterParams) => p.value || '—' },
   ], [])
 
   const defaultColDef = useMemo<ColDef>(() => ({ resizable: true, suppressMovable: false }), [])
 
+  const fmtCurrency = (v: number) =>
+    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', notation: 'compact', maximumFractionDigits: 1 }).format(v)
+
   return (
     <div style={{ padding: '20px 28px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
-      {/* KPIs */}
-      <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-        <KpiCard icon={FileText}    label="Total de Contratos"   value={contracts.length.toLocaleString('pt-BR')} color="#60a5fa" />
-        <KpiCard icon={ToggleRight} label="Ativos"               value={activeCount.toLocaleString('pt-BR')}
-          sub={`${contracts.length > 0 ? ((activeCount / contracts.length) * 100).toFixed(0) : 0}% do total`} color="#34d399" />
-        <KpiCard icon={ToggleLeft}  label="Inativos"             value={inactiveCount.toLocaleString('pt-BR')} color="#f87171" />
-        <KpiCard icon={DollarSign}  label="Valor Total Acumulado"
-          value={new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalValue)} color="#a78bfa" />
-        <KpiCard icon={Users}       label="Clientes Únicos"      value={uniqueCustomers.toLocaleString('pt-BR')} color="#fbbf24" />
+      {/* Header: KPIs + Pie Chart */}
+      <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+
+        {/* Left: KPI grid */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', flex: '1 1 360px' }}>
+          {/* Row 1 */}
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+            <KpiCard icon={FileText}    label="Total de Contratos"   value={contracts.length.toLocaleString('pt-BR')} color="#60a5fa" />
+            <KpiCard icon={DollarSign}  label="Valor Total Acumulado" value={fmtCurrency(totalValue)} color="#a78bfa" />
+          </div>
+          {/* Row 2: Ativos */}
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+            <KpiCard
+              icon={ToggleRight}
+              label="Contratos Ativos"
+              value={activeCount.toLocaleString('pt-BR')}
+              sub={`${contracts.length > 0 ? ((activeCount / contracts.length) * 100).toFixed(0) : 0}% do total`}
+              color="#34d399"
+            />
+            <KpiCard
+              icon={DollarSign}
+              label="Valor Ativos"
+              value={fmtCurrency(activeValue)}
+              color="#34d399"
+            />
+          </div>
+          {/* Row 3: Inativos */}
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+            <KpiCard
+              icon={ToggleLeft}
+              label="Contratos Inativos"
+              value={inactiveCount.toLocaleString('pt-BR')}
+              sub={`${contracts.length > 0 ? ((inactiveCount / contracts.length) * 100).toFixed(0) : 0}% do total`}
+              color="#f87171"
+            />
+            <KpiCard
+              icon={DollarSign}
+              label="Valor Inativos"
+              value={fmtCurrency(inactiveValue)}
+              color="#f87171"
+            />
+          </div>
+        </div>
+
+        {/* Right: Pie Chart */}
+        <div style={{
+          flex: '0 0 260px', height: '220px',
+          background: 'rgba(31,41,55,0.4)', border: '1px solid rgba(55,65,81,0.35)',
+          borderRadius: '14px', padding: '12px 8px 8px',
+          display: 'flex', flexDirection: 'column',
+        }}>
+          <div style={{ fontSize: '0.68rem', color: '#6b7280', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'center', marginBottom: '4px' }}>
+            Ativos × Inativos
+          </div>
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={pieData}
+                cx="50%" cy="50%"
+                innerRadius={52} outerRadius={80}
+                paddingAngle={3}
+                dataKey="value"
+                strokeWidth={0}
+              >
+                {pieData.map((entry, index) => (
+                  <Cell key={index} fill={entry.color} opacity={0.9} />
+                ))}
+              </Pie>
+              <Tooltip
+                contentStyle={{ background: '#111827', border: '1px solid rgba(55,65,81,0.5)', borderRadius: '8px', fontSize: '12px' }}
+                formatter={(value, name) => [Number(value ?? 0).toLocaleString('pt-BR'), name]}
+              />
+              <Legend
+                iconType="circle" iconSize={8}
+                formatter={(value) => <span style={{ color: '#9ca3af', fontSize: '11px' }}>{value}</span>}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+
       </div>
 
       {/* Grid card */}

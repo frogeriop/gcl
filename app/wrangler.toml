@@ -1,0 +1,20 @@
+name = "gcl"
+main = ".open-next/worker.js"
+compatibility_date = "2025-04-01"
+compatibility_flags = ["nodejs_compat"]
+
+[observability]
+enabled = true
+
+# ── Assets (static files gerados pelo Next.js build) ──────────────────────────
+[assets]
+directory = ".open-next/assets"
+binding = "ASSETS"
+
+# ── Variáveis de ambiente (públicas) ──────────────────────────────────────────
+[vars]
+NEXT_PUBLIC_SUPABASE_URL = "https://pupkagzfkvrhpfqjmnjh.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY = "sb_publishable_AXeCjfZHtMojuPjX_e-u3Q_KRYraZlB"
+
+# ── Secrets (configurar via: npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY)
+# SUPABASE_SERVICE_ROLE_KEY  →  npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY
